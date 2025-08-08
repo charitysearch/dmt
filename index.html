@@ -75,12 +75,12 @@
 <h2 style="text-align:left;">Altered Database</h2>
 <button onclick="mergeCharities()">Add Inputted Charities to Main</button>
 <button onclick="removeDuplicates()">Remove Duplicate Entries (by name only)</button>
-<button onclick="reformatOutput()">🔄 Reformat</button>
+<button onclick="reformatOutput()">Reformat</button>
 <br /><br />
 <textarea id="outputBox" rows="15" placeholder="Final database appears here..."></textarea>
 <br />
-<button onclick="copyOutput()">📋 Copy Final Database</button>
-<div id="copyNotice">✅ Copied to clipboard!</div>
+<button onclick="copyOutput()">Copy Final Database</button>
+<div id="copyNotice">Copied to clipboard!</div>
 
 <p class="footer-note">This tool is intended for developer use only.</p>
 
@@ -102,10 +102,10 @@
       document.getElementById('pasteBox').value = text;
       parseBase();
 
-      notice.textContent = "✅ Imported database from URL successfully.";
+      notice.textContent = "Imported database from URL successfully.";
       notice.style.display = 'block';
     } catch (e) {
-      alert("❌ Failed to fetch or parse the database from URL.");
+      alert("Failed to fetch or parse the database from URL.");
       console.error(e);
     }
   }
@@ -127,9 +127,9 @@
       }
       baseCharities = parsed;
       updateOutput();
-      alert("✅ Base database loaded successfully.");
+      alert("Base database loaded successfully.");
     } catch (err) {
-      alert("❌ Error parsing database. Check formatting.");
+      alert("Error parsing database. Check formatting.");
       console.error(err);
     }
   }
@@ -140,7 +140,7 @@
     const website = document.getElementById('newWebsite').value.trim();
     const keywords = document.getElementById('newKeywords').value.split(',').map(k => k.trim()).filter(Boolean);
     if (!name || !website) {
-      alert("❗ Name and Website are required.");
+      alert("Name and Website are required.");
       return;
     }
     const charity = { name, description, website, keywords };
@@ -161,7 +161,7 @@
     tempCharities = [];
     document.getElementById('tempList').innerHTML = '';
     updateOutput();
-    alert("✅ Inputted charities added to main database.");
+    alert("Inputted charities added to main database.");
   }
 
   function removeDuplicates() {
@@ -173,7 +173,7 @@
       return true;
     });
     updateOutput();
-    alert("✅ Duplicates removed (by name only).");
+    alert("Duplicates removed (by name only).");
   }
 
   function updateOutput() {
@@ -206,9 +206,9 @@
       }
       baseCharities = parsed;
       updateOutput();
-      alert("✅ Database reformatted successfully.");
+      alert("Database reformatted successfully.");
     } catch (e) {
-      alert("❌ Error reformatting database.");
+      alert("Error reformatting database.");
       console.error(e);
     }
   }
