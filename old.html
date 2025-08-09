@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DMT - Charity Database Management Tool</title>
+<style>
+  body {
+    font-family: sans-serif;
+    padding: 1em;
+    max-width: 800px;
+    margin: auto;
+    text-align: center;
+  }
+  textarea, input, button {
+    width: 100%;
+    margin: 0.5em 0;
+    padding: 0.5em;
+  }
+  ul {
+    padding-left: 20px;
+    text-align: left;
+  }
+  #copyNotice, #importNotice {
+    color: green;
+    display: none;
+    margin-top: 0.5em;
+  }
+  .small-text {
+    font-size: small;
+    color: #555;
+    margin-top: -1em;
+    margin-bottom: 1em;
+  }
+  .footer-note {
+    margin-top: 3em;
+    font-size: small;
+    color: #777;
+  }
+</style>
+</head>
+<body>
+
+<h1>DMT</h1>
+<p class="small-text">Tool created by Evan O for Charity Finder database management</p>
+
+<h2 style="text-align:left;">Paste your database here...</h2>
+<textarea id="pasteBox" rows="10" placeholder="Paste full data.js here..."></textarea><br>
+<button onclick="parseBase()">Continue</button>
+
+<hr>
+
+<h2 style="text-align:left;">Import Last Published Database from URL</h2>
+<input id="importUrl" type="text" value="https://raw.githubusercontent.com/charitysearch/online/main/data.js" />
+<button onclick="importFromUrl()">Import from URL</button>
+<p class="small-text" style="text-align:left; margin-top: 0.2em;">
+  That only copies the official release and not the pre-release version of that database, but you can change the link here to import a different version.
+</p>
+<div id="importNotice"></div>
+
+<hr>
+
+<h2 style="text-align:left;">Input new charity</h2>
+<input id="newName" placeholder="Name" /><br />
+<input id="newDesc" placeholder="Description" /><br />
+<input id="newWebsite" placeholder="Website" /><br />
+<input id="newKeywords" placeholder="Keywords (comma-separated)" /><br />
+<button onclick="addTempCharity()">Add Charity</button>
+
+<h3 style="text-align:left;">Pending Charities</h3>
+<ul id="tempList"></ul>
+
+<hr>
+
+<h2 style="text-align:left;">Altered Database</h2>
+<button onclick="mergeCharities()">Add Inputted Charities to Main</button>
+<button onclick="removeDuplicates()">Remove Duplicate Entries (by name only)</button>
+<button onclick="reformatOutput()">Reformat</button>
+<br /><br />
+<textarea id="outputBox" rows="15" placeholder="Final database appears here..."></textarea>
+<br />
+<button onclick="copyOutput()">Copy Final Database</button>
+<div id="copyNotice">Copied to clipboard!</div>
+
+<p class="footer-note">This tool is intended for developer use only.</p>
+
+<script>
+  let baseCharities = [];
+  let tempCharities = [];
+
+  async function importFromUrl() {
+    const url = document.getElementById('importUrl').value.trim();
+    const notice = document.getElementById('importNotice');
+    notice.style.display = 'none';
+
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+      const text = await res.text();
+
+      document.getElementById('pasteBox').value = text;
+      parseBase();
+
+      notice.textContent = "Imported database from URL successfully.";
+      notice.style.display = 'block';
+    } catch (e) {
+      alert("Failed to fetch or parse the database from URL.");
+      console.error(e);
+    }
+  }
+
+  function parseBase() {
+    const input = document.getElementById('pasteBox').value.trim();
+    try {
+      let raw = input;
+      if (raw.startsWith("const")) {
+        raw = raw.slice(raw.indexOf('=') + 1).trim();
+      }
+      if (raw.endsWith(";")) {
+        raw = raw.slice(0, -1);
+      }
+      const parsed = new Function(`return (${raw})`)();
+      if (!Array.isArray(parsed)) {
+        alert("Parsed content is not an array.");
+        return;
+      }
+      baseCharities = parsed;
+      updateOutput();
+      alert("Base database loaded successfully.");
+    } catch (err) {
+      alert("Error parsing database. Check formatting.");
+      console.error(err);
+    }
+  }
+
+  function addTempCharity() {
+    const name = document.getElementById('newName').value.trim();
+    const description = document.getElementById('newDesc').value.trim();
+    const website = document.getElementById('newWebsite').value.trim();
+    const keywords = document.getElementById('newKeywords').value.split(',').map(k => k.trim()).filter(Boolean);
+    if (!name || !website) {
+      alert("Name and Website are required.");
+      return;
+    }
+    const charity = { name, description, website, keywords };
+    tempCharities.push(charity);
+    document.getElementById('tempList').innerHTML += `<li><strong>${name}</strong> - ${website}</li>`;
+    clearInputs();
+  }
+
+  function clearInputs() {
+    document.getElementById('newName').value = '';
+    document.getElementById('newDesc').value = '';
+    document.getElementById('newWebsite').value = '';
+    document.getElementById('newKeywords').value = '';
+  }
+
+  function mergeCharities() {
+    baseCharities = baseCharities.concat(tempCharities);
+    tempCharities = [];
+    document.getElementById('tempList').innerHTML = '';
+    updateOutput();
+    alert("Inputted charities added to main database.");
+  }
+
+  function removeDuplicates() {
+    const seen = new Set();
+    baseCharities = baseCharities.filter(c => {
+      const key = c.name.trim().toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    updateOutput();
+    alert("Duplicates removed (by name only).");
+  }
+
+  function updateOutput() {
+    const output = `const charities = ${JSON.stringify(baseCharities, null, 2)};`;
+    document.getElementById('outputBox').value = output;
+  }
+
+  function copyOutput() {
+    const text = document.getElementById('outputBox').value;
+    navigator.clipboard.writeText(text).then(() => {
+      const notice = document.getElementById('copyNotice');
+      notice.style.display = 'block';
+      setTimeout(() => { notice.style.display = 'none'; }, 2000);
+    });
+  }
+
+  function reformatOutput() {
+    try {
+      let raw = document.getElementById('outputBox').value.trim();
+      if (raw.startsWith("const")) {
+        raw = raw.slice(raw.indexOf('=') + 1).trim();
+      }
+      if (raw.endsWith(";")) {
+        raw = raw.slice(0, -1);
+      }
+      const parsed = new Function(`return (${raw})`)();
+      if (!Array.isArray(parsed)) {
+        alert("Current output is not a valid array.");
+        return;
+      }
+      baseCharities = parsed;
+      updateOutput();
+      alert("Database reformatted successfully.");
+    } catch (e) {
+      alert("Error reformatting database.");
+      console.error(e);
+    }
+  }
+</script>
+
+</body>
+</html>
