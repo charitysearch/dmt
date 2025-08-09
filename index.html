@@ -1,879 +1,908 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>DTM</title>
-  <style>
-    :root {
-      --max: 1100px;
-      --accent: #3b82f6;
-      --muted: #6b7280;
-      --bg: #f3f4f6;
-      --card: #ffffff;
-      --border: #e5e7eb;
-    }
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
-      margin: 0;
-      background: var(--bg);
-      color: #1f2937;
-      display: flex;
-      justify-content: center;
-      padding: 12px;
-      min-height: 100vh;
-      flex-direction: column;
-    }
-    .wrap {
-      width: 100%;
-      max-width: var(--max);
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
-      padding-bottom: 20px;
-    }
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 0;
-    }
-    h1 {
-      margin: 0;
-      font-size: 1.2rem;
-    }
-    .sub {
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-    .tabs {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 10px;
-      border: 0;
-      background: var(--card);
-      color: #4b5563;
-      border-radius: 8px;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      font-weight: 600;
-      min-width: 90px;
-      text-align: center;
-      user-select: none;
-    }
-    .tab-btn.active {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
-    }
-    .container {
-      background: var(--card);
-      border-radius: 10px;
-      padding: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      min-height: 400px;
-    }
-    layout {
-      display: grid;
-      gap: 12px;
-    }
-    @media (min-width: 900px) {
-      layout {
-        grid-template-columns: 1fr 420px;
-      }
-    }
-    .controls {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    input,
-    textarea,
-    select,
-    button {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: #f9fafb;
-      color: #1f2937;
-      font-size: 1rem;
-      font-family: inherit;
-    }
-    textarea {
-      min-height: 120px;
-      resize: vertical;
-    }
-    .output {
-      min-height: 240px;
-      background: #f9fafb;
-      border: 1px solid var(--border);
-      padding: 10px;
-      overflow: auto;
-      border-radius: 8px;
-      font-family: monospace;
-      white-space: pre-wrap;
-      flex-grow: 1;
-      user-select: text;
-      color: #1f2937;
-    }
-    .pending-item {
-      display: flex;
-      gap: 8px;
-      align-items: flex-start;
-      justify-content: space-between;
-      padding: 8px;
-      border-radius: 8px;
-      background: #f3f4f6;
-      margin-bottom: 8px;
-      flex-wrap: wrap;
-    }
-    .pending-left {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-width: 180px;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-    }
-    .pending-left strong, .pending-left small {
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-    }
-    .inline {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .small {
-      padding: 8px;
-      font-size: 0.9rem;
-    }
-    .ghost {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      cursor: pointer;
-    }
-    .ghost:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .secondary {
-      background: var(--accent);
-      color: #fff;
-      cursor: pointer;
-      border: none;
-    }
-    .secondary:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .tiny {
-      font-size: 0.85rem;
-      color: var(--muted);
-      user-select: none;
-    }
-    .logbox {
-      height: 140px;
-      overflow: auto;
-      background: #f9fafb;
-      border: 1px solid var(--border);
-      padding: 8px;
-      border-radius: 8px;
-      font-family: monospace;
-      font-size: 0.85rem;
-      white-space: pre-wrap;
-      margin-top: 8px;
-      flex-grow: 1;
-      user-select: text;
-    }
-    .footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 0.85rem;
-      user-select: none;
-    }
-    .btn-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .disabled {
-      opacity: 0.55;
-      pointer-events: none;
-    }
-    .search-row {
-      display: flex;
-      gap: 8px;
-    }
-    .remove-pending-btn {
-      flex-shrink: 0;
-    }
-    @media (max-width: 900px) {
-      layout {
-        grid-template-columns: 1fr;
-      }
-      .output {
-        min-height: 200px;
-      }
-    }
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    .modal-content {
-      background: var(--card);
-      color: #1f2937;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 400px;
-      width: 90%;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      text-align: center;
-    }
-    .modal-content h3 {
-      margin-top: 0;
-    }
-    .modal-buttons {
-      margin-top: 20px;
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>DTM</title>
+    <style>
+        :root {
+            --max: 1100px;
+            --accent: #3b82f6;
+            --muted: #6b7280;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --border: #e5e7eb;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+            margin: 0;
+            background: var(--bg);
+            color: #1f2937;
+            display: flex;
+            justify-content: center;
+            padding: 12px;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+        .wrap {
+            width: 100%;
+            max-width: var(--max);
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding-bottom: 20px;
+            height: auto;
+            max-height: none;
+        }
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+        }
+        h1 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        .sub {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: 0;
+            background: var(--card);
+            color: #4b5563;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            font-weight: 600;
+            min-width: 90px;
+            text-align: center;
+            user-select: none;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .tab-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .tab-btn:hover {
+            background-color: #f0f0f0;
+        }
+        .tab-btn.active:hover {
+            background-color: #2563eb;
+        }
+        .container {
+            background: var(--card);
+            border-radius: 10px;
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            min-height: 400px;
+            flex-grow: 1;
+        }
+        layout {
+            display: grid;
+            gap: 12px;
+        }
+        @media (min-width: 900px) {
+            layout {
+                grid-template-columns: 1fr 420px;
+            }
+        }
+        .controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        input,
+        textarea,
+        select,
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #f9fafb;
+            color: #1f2937;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .output {
+            min-height: 240px;
+            background: #f9fafb;
+            border: 1px solid var(--border);
+            padding: 10px;
+            overflow: auto;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            flex-grow: 1;
+            user-select: text;
+            color: #1f2937;
+        }
+        .pending-item {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 8px;
+            border-radius: 8px;
+            background: #f3f4f6;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .pending-left {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 180px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .pending-left strong, .pending-left small {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .inline {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .small {
+            padding: 8px;
+            font-size: 0.9rem;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            cursor: pointer;
+        }
+        .ghost:hover {
+            background-color: #e5e7eb;
+            color: #1f2937;
+            border-color: #d1d5db;
+        }
+        .ghost:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: transparent;
+            color: var(--muted);
+            pointer-events: none;
+        }
+        .secondary {
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            border: none;
+        }
+        .secondary:hover {
+            background-color: #2563eb;
+        }
+        .secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: var(--accent);
+            pointer-events: none;
+        }
+        .small:not(.ghost):not(.secondary):hover {
+            background-color: #e5e7eb;
+        }
+        .tiny {
+            font-size: 0.85rem;
+            color: var(--muted);
+            user-select: none;
+        }
+        .logbox {
+            height: 140px;
+            overflow: auto;
+            background: #f9fafb;
+            border: 1px solid var(--border);
+            padding: 8px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            margin-top: 8px;
+            flex-grow: 1;
+            user-select: text;
+        }
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 0.85rem;
+            user-select: none;
+        }
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .disabled,
+        [disabled] {
+            opacity: 0.55;
+            pointer-events: none;
+        }
+        .search-row {
+            display: flex;
+            gap: 8px;
+        }
+        .remove-pending-btn {
+            flex-shrink: 0;
+        }
+        @media (max-width: 900px) {
+            layout {
+                grid-template-columns: 1fr;
+            }
+            .output {
+                min-height: 200px;
+            }
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: var(--card);
+            color: #1f2937;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        .modal-content h3 {
+            margin-top: 0;
+        }
+        .modal-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body>
-  <div class="wrap" style="height:100vh; max-height: 100vh;">
-    <div id="modalContainer" style="display: none;"></div>
-    <header>
-      <div>
-        <h1>DTM</h1>
-        <div class="sub">Developer charity database manager</div>
-      </div>
-      <div class="tiny">Auto-save: <span id="autoState">off</span></div>
-    </header>
-    <div class="tabs" role="tablist" aria-label="DTM Tabs">
-      <button class="tab-btn active" data-tab="tab-output" role="tab" aria-selected="true" tabindex="0">Output</button>
-      <button class="tab-btn" data-tab="tab-db" role="tab" aria-selected="false" tabindex="-1">Database</button>
-      <button class="tab-btn" data-tab="tab-tools" role="tab" aria-selected="false" tabindex="-1">Charity Manager</button>
-      <button class="tab-btn" data-tab="tab-logs" role="tab" aria-selected="false" tabindex="-1">Logs</button>
-      <button class="tab-btn" data-tab="tab-settings" role="tab" aria-selected="false" tabindex="-1">Settings</button>
-    </div>
-    <div id="tab-output" class="container" role="tabpanel" aria-labelledby="tab-output" tabindex="0">
-      <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
-        <div style="flex:1">
-          <div class="search-row">
-            <input id="search" placeholder="Search name, description, website, keywords" aria-label="Search charities">
-          </div>
-        </div>
-        <div style="width:220px">
-          <div class="btn-row">
-            <button id="copyBtn" class="small" aria-label="Copy output to clipboard">Copy</button>
-            <button id="downloadJsBtn" class="small secondary" aria-label="Download output as JS file">Download .js</button>
-          </div>
-        </div>
-      </div>
-      <div class="output" id="outputArea" contenteditable="true" aria-label="Charity database output"></div>
-      <div class="btn-row" style="margin-top:12px;">
-        <button id="clearOutputBtn" class="small ghost" disabled aria-label="Clear output area">Clear Output</button>
-        <button id="reformatBtn" class="small ghost" disabled aria-label="Reformat output to base database">Reformat Output</button>
-        <button id="removeDupBtn" class="small" disabled aria-label="Remove duplicates from base database">Remove Duplicates</button>
-        <button id="combineBtn" class="small" disabled aria-label="Combine pending and existing database">Combine Pending & Existing</button>
-        <button id="writePendingBtn" class="small ghost" disabled aria-label="Set output to pending charities">Set Pending to Output</button>
-      </div>
-      <div class="footer">
-        <div class="tiny">Output tab is primary. Use Database or Tools tabs to modify data.</div>
-        <div class="tiny">DTM</div>
-      </div>
-    </div>
-    <div id="tab-db" class="container" role="tabpanel" aria-labelledby="tab-db" tabindex="0" style="display:none; margin-top:12px;">
-      <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-        <input
-          id="dbUrl"
-          placeholder="Autofill URL or paste your raw file URL"
-          value="https://raw.githubusercontent.com/charitysearch/online/main/data.js"
-          aria-label="URL to import charity database"
-        />
-        <div style="width:140px">
-          <button id="importBtn" class="small" aria-label="Import database from URL">Import</button>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
-        <button id="loadBtn" class="small secondary" aria-label="Load database from pasted text">Load Pasted DB</button>
-        <button id="clearBaseBtn" class="small ghost" aria-label="Clear base database">Clear Base</button>
-        <input id="fileInput" type="file" accept=".json,.js" style="width:auto" aria-label="Load database file" />
-      </div>
-      <label class="tiny" for="pasteBox">Paste base DB (JSON array or const charities = [...])</label>
-      <textarea
-        id="pasteBox"
-        placeholder='Paste array or "const charities = [...]" here'
-        aria-label="Paste database here"
-      ></textarea>
-      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <button id="exportJsonBtn" class="small secondary" disabled aria-label="Export base database as JSON file">Export JSON</button>
-      </div>
-    </div>
-    <div id="tab-tools" class="container" role="tabpanel" aria-labelledby="tab-tools" tabindex="0" style="display:none; margin-top:12px;">
-      <div style="display:grid;gap:8px">
-        <label class="tiny" for="newName">Add new charity to pending</label>
-        <input id="newName" placeholder="Name" aria-label="New charity name" />
-        <input id="newDesc" placeholder="Description" aria-label="New charity description" />
-        <input id="newWebsite" placeholder="Website (https://...)" aria-label="New charity website" />
-        <input
-          id="newKeywords"
-          placeholder="Keywords (comma-separated, e.g. blood, disaster, relief)"
-          aria-label="New charity keywords"
-        />
-        <div class="controls">
-          <button id="addPendingBtn" class="small" aria-label="Add charity to pending list">Add to Pending</button>
-          <button id="clearPendingBtn" class="small ghost" aria-label="Clear pending charities list">Clear Pending</button>
-          <button id="pasteSampleBtn" class="small ghost" aria-label="Paste sample charity data">Paste Sample</button>
-        </div>
-        <label class="tiny" style="margin-top:8px">Pending charities</label>
-        <div id="pendingList" aria-live="polite" aria-atomic="false"></div>
-      </div>
-    </div>
-    <div id="tab-logs" class="container" role="tabpanel" aria-labelledby="tab-logs" tabindex="0" style="display:none; margin-top:12px;">
-      <label class="tiny" for="logBox">Logs</label>
-      <div class="logbox" id="logBox" aria-live="polite" aria-atomic="false" role="log"></div>
-      <div class="btn-row" style="margin-top:6px; justify-content: flex-start;">
-        <button id="downloadLogsBtn" class="small ghost" aria-label="Download logs">Download Logs</button>
-        <button id="loadLogsBtn" class="small ghost" aria-label="Load logs from file">Load Logs</button>
-        <button id="clearLogsBtn" class="small ghost" aria-label="Clear logs">Clear Logs</button>
-      </div>
-    </div>
-    <div
-      id="tab-settings"
-      class="container"
-      role="tabpanel"
-      aria-labelledby="tab-settings"
-      tabindex="0"
-      style="display:none; margin-top:12px;"
-    >
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-        <label style="margin:0"
-          ><input type="checkbox" id="autoSave" aria-label="Enable or disable auto-save" /> Auto-save</label
-        >
-        <div class="tiny" style="margin-left:8px">Auto-save saves base & pending to localStorage</div>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button id="saveLocalBtn" class="small secondary" aria-label="Manual save data">Manual Save</button>
-        <button id="clearSavedBtn" class="small ghost" aria-label="Clear saved data">Clear Saved Data</button>
-      </div>
-    </div>
-  </div>
-  <script>
-    let base = [];
-    let pending = [];
-    let logs = [];
-    const out = document.getElementById("outputArea");
-    const logBox = document.getElementById("logBox");
-    const pendingList = document.getElementById("pendingList");
-    const autoSaveEl = document.getElementById("autoSave");
-    const autoState = document.getElementById("autoState");
-    const modalContainer = document.getElementById("modalContainer");
-    function showModal(title, message, isConfirm = false, onConfirm = null) {
-      modalContainer.style.display = 'flex';
-      let modalHtml = `
-        <div class="modal-overlay">
-          <div class="modal-content">
-            <h3>${title}</h3>
-            <p>${message}</p>
-            <div class="modal-buttons">
-              ${isConfirm ? `<button id="modalConfirmBtn" class="small">OK</button>` : ''}
-              <button id="modalCloseBtn" class="small secondary">${isConfirm ? 'Cancel' : 'Close'}</button>
+    <div class="wrap">
+        <div id="modalContainer" style="display: none;"></div>
+        <header>
+            <div>
+                <h1>DTM</h1>
+                <div class="sub">Developer charity database manager</div>
             </div>
-          </div>
+            <div class="tiny">Auto-save: <span id="autoState">off</span></div>
+        </header>
+        <div class="tabs" role="tablist" aria-label="DTM Tabs">
+            <button class="tab-btn active" data-tab="tab-output" role="tab" aria-selected="true" tabindex="0">Output</button>
+            <button class="tab-btn" data-tab="tab-db" role="tab" aria-selected="false" tabindex="-1">Database</button>
+            <button class="tab-btn" data-tab="tab-tools" role="tab" aria-selected="false" tabindex="-1">Tools</button>
+            <button class="tab-btn" data-tab="tab-logs" role="tab" aria-selected="false" tabindex="-1">Logs</button>
+            <button class="tab-btn" data-tab="tab-settings" role="tab" aria-selected="false" tabindex="-1">Settings</button>
         </div>
-      `;
-      modalContainer.innerHTML = modalHtml;
-      document.getElementById('modalCloseBtn').onclick = () => {
-        modalContainer.style.display = 'none';
-        modalContainer.innerHTML = '';
-      };
-      if (isConfirm) {
-        document.getElementById('modalConfirmBtn').onclick = () => {
-          modalContainer.style.display = 'none';
-          modalContainer.innerHTML = '';
-          if (onConfirm) onConfirm();
-        };
-      }
-    }
-    function now() {
-      return new Date().toLocaleString();
-    }
-    function addLog(t) {
-      logs.push("[" + now() + "] " + t);
-      if (logs.length > 500) logs.shift();
-      renderLogs();
-    }
-    function renderLogs() {
-      logBox.textContent = logs.join("\n");
-      logBox.scrollTop = logBox.scrollHeight;
-    }
-    function saveIfAuto() {
-      if (autoSaveEl.checked) {
-        try {
-          localStorage.setItem("dtm.base", JSON.stringify(base));
-          localStorage.setItem("dtm.pending", JSON.stringify(pending));
-          addLog("Auto-saved data");
-        } catch (e) {
-          addLog("Auto-save failed");
+        <div id="tab-output" class="container" role="tabpanel" aria-labelledby="tab-output" tabindex="0">
+            <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+                <div style="flex:1">
+                    <div class="search-row">
+                        <input id="search" placeholder="Search name, description, website, keywords" aria-label="Search charities">
+                    </div>
+                </div>
+                <div style="width:220px">
+                    <div class="btn-row">
+                        <button id="copyBtn" class="small" aria-label="Copy output to clipboard">Copy</button>
+                        <button id="downloadJsBtn" class="small secondary" aria-label="Download output as JS file">Download .js</button>
+                    </div>
+                </div>
+            </div>
+            <div class="output" id="outputArea" contenteditable="true" aria-label="Charity database output"></div>
+            <div class="btn-row" style="margin-top:12px;">
+                <button id="clearOutputBtn" class="small ghost" disabled aria-label="Clear output area">Clear Output</button>
+                <button id="reformatBtn" class="small ghost" disabled aria-label="Reformat output to base database">Reformat Output</button>
+                <button id="removeDupBtn" class="small" disabled aria-label="Remove duplicates from base database">Remove Duplicates</button>
+                <button id="combineBtn" class="small" disabled aria-label="Combine pending and existing database">Combine Pending & Existing</button>
+                <button id="writePendingBtn" class="small ghost" disabled aria-label="Set output to pending charities">Set Pending to Output</button>
+            </div>
+            <div class="footer">
+                <div class="tiny">Output tab is primary. Use Database or Tools tabs to modify data.</div>
+                <div class="tiny">DTM</div>
+            </div>
+        </div>
+        <div id="tab-db" class="container" role="tabpanel" aria-labelledby="tab-db" tabindex="0" style="display:none; margin-top:12px;">
+            <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+                <input
+                    id="dbUrl"
+                    placeholder="Autofill URL or paste your raw file URL"
+                    value="https://raw.githubusercontent.com/charitysearch/online/main/data.js"
+                    aria-label="URL to import charity database"
+                />
+                <div style="width:140px">
+                    <button id="importBtn" class="small secondary" aria-label="Import database from URL">Import</button>
+                </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+                <button id="loadBtn" class="small secondary" aria-label="Load database from pasted text">Load Pasted DB</button>
+                <button id="clearBaseBtn" class="small ghost" aria-label="Clear base database">Clear Base</button>
+                <input id="fileInput" type="file" accept=".json,.js" style="width:auto" aria-label="Load database file" />
+            </div>
+            <label class="tiny" for="pasteBox">Paste base DB (JSON array or const charities = [...])</label>
+            <textarea
+                id="pasteBox"
+                placeholder='Paste array or "const charities = [...]" here'
+                aria-label="Paste database here"
+            ></textarea>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <button id="exportJsonBtn" class="small secondary" disabled aria-label="Export base database as JSON file">Export JSON</button>
+            </div>
+        </div>
+        <div id="tab-tools" class="container" role="tabpanel" aria-labelledby="tab-tools" tabindex="0" style="display:none; margin-top:12px;">
+            <div style="display:grid;gap:8px">
+                <label class="tiny" for="newName">Add new charity to pending</label>
+                <input id="newName" placeholder="Name" aria-label="New charity name" />
+                <input id="newDesc" placeholder="Description" aria-label="New charity description" />
+                <input id="newWebsite" placeholder="Website (https://...)" aria-label="New charity website" />
+                <input
+                    id="newKeywords"
+                    placeholder="Keywords (comma-separated, e.g. blood, disaster, relief)"
+                    aria-label="New charity keywords"
+                />
+                <div class="controls">
+                    <button id="addPendingBtn" class="small secondary" aria-label="Add charity to pending list">Add to Pending</button>
+                    <button id="clearPendingBtn" class="small ghost" aria-label="Clear pending charities list">Clear Pending</button>
+                    <button id="pasteSampleBtn" class="small ghost" aria-label="Paste sample charity data">Paste Sample</button>
+                </div>
+                <label class="tiny" style="margin-top:8px">Pending charities</label>
+                <div id="pendingList" aria-live="polite" aria-atomic="false"></div>
+            </div>
+        </div>
+        <div id="tab-logs" class="container" role="tabpanel" aria-labelledby="tab-logs" tabindex="0" style="display:none; margin-top:12px;">
+            <label class="tiny" for="logBox">Logs</label>
+            <div class="logbox" id="logBox" aria-live="polite" aria-atomic="false" role="log"></div>
+            <div class="btn-row" style="margin-top:6px; justify-content: flex-start;">
+                <button id="downloadLogsBtn" class="small ghost" aria-label="Download logs">Download Logs</button>
+                <button id="loadLogsBtn" class="small ghost" aria-label="Load logs from file">Load Logs</button>
+                <button id="clearLogsBtn" class="small ghost" aria-label="Clear logs">Clear Logs</button>
+            </div>
+        </div>
+        <div
+            id="tab-settings"
+            class="container"
+            role="tabpanel"
+            aria-labelledby="tab-settings"
+            tabindex="0"
+            style="display:none; margin-top:12px;"
+        >
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+                <label style="margin:0"
+                    ><input type="checkbox" id="autoSave" aria-label="Enable or disable auto-save" /> Auto-save</label
+                >
+                <div class="tiny" style="margin-left:8px">Auto-save saves base & pending to localStorage</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button id="saveLocalBtn" class="small secondary" aria-label="Manual save data">Manual Save</button>
+                <button id="clearSavedBtn" class="small ghost" aria-label="Clear saved data">Clear Saved Data</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        let base = [];
+        let pending = [];
+        let logs = [];
+        const out = document.getElementById("outputArea");
+        const logBox = document.getElementById("logBox");
+        const pendingList = document.getElementById("pendingList");
+        const autoSaveEl = document.getElementById("autoSave");
+        const autoState = document.getElementById("autoState");
+        const modalContainer = document.getElementById("modalContainer");
+        function showModal(title, message, isConfirm = false, onConfirm = null) {
+            modalContainer.style.display = 'flex';
+            let modalHtml = `
+                <div class="modal-overlay">
+                    <div class="modal-content">
+                        <h3>${title}</h3>
+                        <p>${message}</p>
+                        <div class="modal-buttons">
+                            ${isConfirm ? `<button id="modalConfirmBtn" class="small secondary">OK</button>` : ''}
+                            <button id="modalCloseBtn" class="small ghost">${isConfirm ? 'Cancel' : 'Close'}</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            modalContainer.innerHTML = modalHtml;
+            document.getElementById('modalCloseBtn').onclick = () => {
+                modalContainer.style.display = 'none';
+                modalContainer.innerHTML = '';
+            };
+            if (isConfirm) {
+                document.getElementById('modalConfirmBtn').onclick = () => {
+                    modalContainer.style.display = 'none';
+                    modalContainer.innerHTML = '';
+                    if (onConfirm) onConfirm();
+                };
+            }
         }
-      }
-    }
-    function enableButtons() {
-      const hasBase = Array.isArray(base) && base.length > 0;
-      const hasPending = pending.length > 0;
-      const hasOutput = document.getElementById("outputArea").innerText.trim().length > 0;
-      document.getElementById("combineBtn").disabled = !hasPending;
-      document.getElementById("writePendingBtn").disabled = !hasPending;
-      document.getElementById("removeDupBtn").disabled = !hasBase;
-      document.getElementById("reformatBtn").disabled = !hasOutput;
-      document.getElementById("exportJsonBtn").disabled = !hasBase;
-      document.getElementById("copyBtn").disabled = !hasOutput;
-      document.getElementById("downloadJsBtn").disabled = !hasOutput;
-      document.getElementById("clearOutputBtn").disabled = !hasOutput;
-      document.getElementById("saveLocalBtn").disabled = false;
-      document.getElementById("clearSavedBtn").disabled = false;
-    }
-    function formatOutput(arr) {
-      const rows = (arr || [])
-        .map((o) => {
-          const n = (o.name || "").replace(/"/g, '\\"');
-          const d = (o.description || "").replace(/"/g, '\\"');
-          const w = (o.website || "").replace(/"/g, '\\"');
-          const k = Array.isArray(o.keywords)
-            ? o.keywords.map((x) => '"' + (x || "").replace(/"/g, '\\"') + '"').join(", ")
-            : "";
-          return (
-            "  {\n    name: \"" +
-            n +
-            "\",\n    description: \"" +
-            d +
-            "\",\n    website: \"" +
-            w +
-            "\",\n    keywords: [" +
-            k +
-            "]\n  }"
-          );
-        })
-        .join(",\n");
-      return "const charities = [\n" + rows + "\n];";
-    }
-    function renderOutput(arr) {
-      const a = typeof arr === "undefined" ? base : arr;
-      out.innerText = formatOutput(a);
-      enableButtons();
-    }
-    function renderPending() {
-      if (pending.length === 0) {
-        pendingList.innerHTML = '<div class="tiny">No pending charities.</div>';
-        return;
-      }
-      pendingList.innerHTML = "";
-      pending.forEach((c, i) => {
-        const el = document.createElement("div");
-        el.className = "pending-item";
-        el.innerHTML =
-          `<div class="pending-left">` +
-          `<strong>${c.name || "N/A"}</strong>` +
-          `<small class="tiny">${c.website || ""}</small>` +
-          `</div>` +
-          `<button aria-label="Remove pending charity ${c.name}" data-idx="${i}" class="ghost remove-pending-btn">Remove</button>`;
-        pendingList.appendChild(el);
-      });
-    }
-    function clearPending() {
-      showModal(
-        "Confirm Clear",
-        "Are you sure you want to clear all pending charities? This cannot be undone.",
-        true,
-        () => {
-          pending = [];
-          renderPending();
-          enableButtons();
-          addLog("Cleared all pending charities.");
-          saveIfAuto();
+        function now() {
+            return new Date().toLocaleString();
         }
-      );
-    }
-    function clearOutput() {
-        showModal(
-        "Confirm Clear",
-        "Are you sure you want to clear the output area?",
-        true,
-        () => {
-          out.innerText = "";
-          enableButtons();
-          addLog("Cleared output area.");
+        function addLog(t) {
+            logs.push("[" + now() + "] " + t);
+            if (logs.length > 500) logs.shift();
+            renderLogs();
         }
-      );
-    }
-    function addPendingFromInputs() {
-      const name = document.getElementById("newName").value.trim();
-      const description = document.getElementById("newDesc").value.trim();
-      const website = document.getElementById("newWebsite").value.trim();
-      const keywordsRaw = document.getElementById("newKeywords").value.trim();
-      if (!name || !website) {
-        showModal("Missing Info", "Name and Website are required.");
-        return;
-      }
-      const keywords = keywordsRaw
-        .split(",")
-        .map((k) => k.trim())
-        .filter((k) => k);
-      const charity = { name, description, website, keywords };
-      pending.push(charity);
-      addLog(`Added pending charity: ${name}`);
-      renderPending();
-      enableButtons();
-      saveIfAuto();
-      document.getElementById("newName").value = "";
-      document.getElementById("newDesc").value = "";
-      document.getElementById("newWebsite").value = "";
-      document.getElementById("newKeywords").value = "";
-    }
-    function pasteSamplePending() {
-      document.getElementById("newName").value = "American Red Cross";
-      document.getElementById("newDesc").value =
-        "Provides emergency assistance, disaster relief, and disaster preparedness education.";
-      document.getElementById("newWebsite").value = "https://www.redcross.org";
-      document.getElementById("newKeywords").value = "blood, disaster, relief, emergency, donate";
-    }
-    function importFromUrl() {
-      const url = document.getElementById("dbUrl").value.trim();
-      if (!url) {
-        showModal("Missing URL", "Enter a URL to import.");
-        return;
-      }
-      addLog("Fetching database from URL: " + url);
-      fetch(url)
-        .then((r) => {
-          if (!r.ok) throw new Error("HTTP " + r.status);
-          return r.text();
-        })
-        .then((text) => {
-          document.getElementById("pasteBox").value = text;
-          loadBaseFromText(text);
-          addLog("Imported database from URL");
-        })
-        .catch((e) => {
-          addLog("Failed to fetch: " + e.message);
-          showModal("Import Failed", "Failed to fetch from URL: " + e.message);
-        });
-    }
-    function loadBaseFromText(raw) {
-      try {
-        let r = raw.trim();
-        if (r.startsWith("const charities =")) {
-          r = r.slice(r.indexOf("=") + 1).trim();
+        function renderLogs() {
+            logBox.textContent = logs.join("\n");
+            logBox.scrollTop = logBox.scrollHeight;
         }
-        if (r.endsWith(";")) {
-          r = r.slice(0, -1);
+        function saveIfAuto() {
+            if (autoSaveEl.checked) {
+                try {
+                    localStorage.setItem("dtm.base", JSON.stringify(base));
+                    localStorage.setItem("dtm.pending", JSON.stringify(pending));
+                    addLog("Auto-saved data");
+                } catch (e) {
+                    addLog("Auto-save failed");
+                }
+            }
         }
-        const parsed = new Function("return (" + r + ")")();
-        if (!Array.isArray(parsed)) {
-          showModal("Parsing Error", "Loaded data is not a valid array.");
-          return false;
+        function enableButtons() {
+            const hasBase = Array.isArray(base) && base.length > 0;
+            const hasPending = pending.length > 0;
+            const hasOutput = document.getElementById("outputArea").innerText.trim().length > 0;
+            document.getElementById("combineBtn").disabled = !hasPending;
+            document.getElementById("writePendingBtn").disabled = !hasPending;
+            document.getElementById("reformatBtn").disabled = !hasOutput;
+            document.getElementById("exportJsonBtn").disabled = !hasBase;
+            document.getElementById("copyBtn").disabled = !hasOutput;
+            document.getElementById("downloadJsBtn").disabled = !hasOutput;
+            document.getElementById("clearOutputBtn").disabled = !hasOutput;
+            document.getElementById("saveLocalBtn").disabled = false;
+            document.getElementById("clearSavedBtn").disabled = false;
+            document.getElementById("removeDupBtn").disabled = !hasBase;
         }
-        base = parsed;
-        addLog("Loaded base database with " + base.length + " entries.");
-        renderOutput();
-        enableButtons();
-        saveIfAuto();
-        return true;
-      } catch (e) {
-        showModal("Parsing Error", "Error parsing database: " + e.message);
-        addLog("Error parsing database: " + e.message);
-        return false;
-      }
-    }
-    function clearBase() {
-      showModal(
-        "Confirm Clear",
-        "Clear base database? This cannot be undone.",
-        true,
-        () => {
-          base = [];
-          renderOutput();
-          addLog("Cleared base database.");
-          enableButtons();
-          saveIfAuto();
+        function formatOutput(arr) {
+            const rows = (arr || [])
+                .map((o) => {
+                    const n = (o.name || "").replace(/"/g, '\\"');
+                    const d = (o.description || "").replace(/"/g, '\\"');
+                    const w = (o.website || "").replace(/"/g, '\\"');
+                    const k = Array.isArray(o.keywords)
+                        ? o.keywords.map((x) => '"' + (x || "").replace(/"/g, '\\"') + '"').join(", ")
+                        : "";
+                    return (
+                        "  {\n    name: \"" +
+                        n +
+                        "\",\n    description: \"" +
+                        d +
+                        "\",\n    website: \"" +
+                        w +
+                        "\",\n    keywords: [" +
+                        k +
+                        "]\n  }"
+                    );
+                })
+                .join(",\n");
+            return "const charities = [\n" + rows + "\n];";
         }
-      );
-    }
-    function combineBasePending() {
-      base = base.concat(pending);
-      pending = [];
-      renderOutput();
-      renderPending();
-      addLog("Combined pending charities into base database.");
-      enableButtons();
-      saveIfAuto();
-    }
-    function writePendingAsOutput() {
-      renderOutput(pending);
-      addLog("Outputting pending charities only.");
-    }
-    function removeDuplicates() {
-      const seen = new Set();
-      const filtered = [];
-      for (const c of base) {
-        const key = (c.name || "").toLowerCase().trim();
-        if (!seen.has(key)) {
-          filtered.push(c);
-          seen.add(key);
+        function renderOutput(arr) {
+            const a = typeof arr === "undefined" ? base : arr;
+            out.innerText = formatOutput(a);
+            enableButtons();
         }
-      }
-      base = filtered;
-      renderOutput();
-      addLog("Removed duplicate charities by name.");
-      enableButtons();
-      saveIfAuto();
-    }
-    function reformatOutputToBase() {
-      try {
-        let raw = out.innerText.trim();
-        if (raw.startsWith("const charities =")) {
-          raw = raw.slice(raw.indexOf("=") + 1).trim();
+        function renderPending() {
+            if (pending.length === 0) {
+                pendingList.innerHTML = '<div class="tiny">No pending charities.</div>';
+                return;
+            }
+            pendingList.innerHTML = "";
+            pending.forEach((c, i) => {
+                const el = document.createElement("div");
+                el.className = "pending-item";
+                el.innerHTML =
+                    `<div class="pending-left">` +
+                    `<strong>${c.name || "N/A"}</strong>` +
+                    `<small class="tiny">${c.website || ""}</small>` +
+                    `</div>` +
+                    `<button aria-label="Remove pending charity ${c.name}" data-idx="${i}" class="ghost remove-pending-btn">Remove</button>`;
+                pendingList.appendChild(el);
+            });
         }
-        if (raw.endsWith(";")) {
-          raw = raw.slice(0, -1);
+        function clearPending() {
+            showModal(
+                "Confirm Clear",
+                "Are you sure you want to clear all pending charities? This cannot be undone.",
+                true,
+                () => {
+                    pending = [];
+                    renderPending();
+                    enableButtons();
+                    addLog("Cleared all pending charities.");
+                    saveIfAuto();
+                }
+            );
         }
-        const parsed = new Function("return (" + raw + ")")();
-        if (!Array.isArray(parsed)) {
-          showModal("Reformat Failed", "Output is not a valid array.");
-          return;
+        function clearOutput() {
+                showModal(
+                "Confirm Clear",
+                "Are you sure you want to clear the output area?",
+                true,
+                () => {
+                    out.innerText = "";
+                    enableButtons();
+                    addLog("Cleared output area.");
+                }
+            );
         }
-        base = parsed;
-        renderOutput();
-        addLog("Reformatted output to base database.");
-        enableButtons();
-        saveIfAuto();
-      } catch (e) {
-        showModal("Reformat Failed", "Failed to reformat output: " + e.message);
-        addLog("Failed to reformat output: " + e.message);
-      }
-    }
-    function copyOutput() {
-      const textToCopy = out.innerText;
-      if (!textToCopy) {
-        showModal("No Content", "The output area is empty.");
-        return;
-      }
-      document.execCommand('copy');
-      addLog("Copied output to clipboard.");
-    }
-    function downloadText(filename, text) {
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(new Blob([text], { type: "text/javascript" }));
-      a.download = filename;
-      a.style.display = "none";
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(a.href);
-      }, 100);
-    }
-    function downloadOutputJs() {
-      const text = out.innerText;
-      if (!text) {
-        showModal("No Content", "There is no content to download.");
-        return;
-      }
-      downloadText("charities.js", text);
-      addLog("Downloaded output as charities.js");
-    }
-    function downloadOutputJson() {
-      const text = JSON.stringify(base, null, 2);
-      if (base.length === 0) {
-        showModal("No Content", "Base database is empty.");
-        return;
-      }
-      downloadText("charities.json", text);
-      addLog("Downloaded base database as charities.json");
-    }
-    function downloadLogs() {
-      const logText = logs.join("\n");
-      if (!logText) {
-        showModal("No Content", "Logs are empty.");
-        return;
-      }
-      downloadText("dtm-logs.txt", logText);
-    }
-    function loadLogs() {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = ".txt,.log";
-      input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          logs = (evt.target.result || "").split("\n").slice(-500);
-          renderLogs();
-          addLog("Loaded logs from file.");
-        };
-        reader.readAsText(file);
-      };
-      input.click();
-    }
-    function clearLogs() {
-      showModal(
-        "Confirm Clear",
-        "Clear all logs? This cannot be undone.",
-        true,
-        () => {
-          logs = [];
-          renderLogs();
-          addLog("Logs cleared.");
-        }
-      );
-    }
-    function saveToLocal() {
-      try {
-        localStorage.setItem("dtm.base", JSON.stringify(base));
-        localStorage.setItem("dtm.pending", JSON.stringify(pending));
-        addLog("Manual save successful.");
-        showModal("Save Successful", "Saved to local storage.");
-      } catch {
-        addLog("Manual save failed.");
-        showModal("Save Failed", "Failed to save to local storage.");
-      }
-    }
-    function clearLocalStorage() {
-      showModal(
-        "Confirm Clear",
-        "Clear all saved data? This cannot be undone.",
-        true,
-        () => {
-          localStorage.removeItem("dtm.base");
-          localStorage.removeItem("dtm.pending");
-          base = [];
-          pending = [];
-          renderOutput();
-          renderPending();
-          enableButtons();
-          addLog("Cleared saved data from localStorage.");
-          showModal("Data Cleared", "Saved data cleared.");
-        }
-      );
-    }
-    function loadFromLocal() {
-      try {
-        const b = localStorage.getItem("dtm.base");
-        const p = localStorage.getItem("dtm.pending");
-        if (b) base = JSON.parse(b);
-        if (p) pending = JSON.parse(p);
-        addLog("Loaded data from localStorage.");
-      } catch {
-        addLog("Failed to load from localStorage.");
-      }
-      autoSaveEl.checked = localStorage.getItem("dtm.autoSave") === "true";
-      autoState.textContent = autoSaveEl.checked ? "on" : "off";
-      renderOutput();
-      renderPending();
-      enableButtons();
-    }
-    document.querySelectorAll(".tab-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach((b) => {
-          b.classList.remove("active");
-          b.setAttribute("aria-selected", "false");
-          b.setAttribute("tabindex", "-1");
-        });
-        btn.classList.add("active");
-        btn.setAttribute("aria-selected", "true");
-        btn.setAttribute("tabindex", "0");
-        document.querySelectorAll("[role=tabpanel]").forEach((panel) => {
-          panel.style.display = "none";
-        });
-        const id = btn.getAttribute("data-tab");
-        document.getElementById(id).style.display = "flex";
-        if (id === "tab-output") {
-          out.focus();
-        }
-      });
-    });
-    document.getElementById("addPendingBtn").onclick = addPendingFromInputs;
-    document.getElementById("clearPendingBtn").onclick = clearPending;
-    document.getElementById("pasteSampleBtn").onclick = pasteSamplePending;
-    document.getElementById("importBtn").onclick = importFromUrl;
-    document.getElementById("loadBtn").onclick = () => {
-      loadBaseFromText(document.getElementById("pasteBox").value);
-    };
-    document.getElementById("clearBaseBtn").onclick = clearBase;
-    document.getElementById("combineBtn").onclick = combineBasePending;
-    document.getElementById("writePendingBtn").onclick = writePendingAsOutput;
-    document.getElementById("removeDupBtn").onclick = removeDuplicates;
-    document.getElementById("reformatBtn").onclick = reformatOutputToBase;
-    document.getElementById("clearOutputBtn").onclick = clearOutput;
-    document.getElementById("copyBtn").onclick = copyOutput;
-    document.getElementById("downloadJsBtn").onclick = downloadOutputJs;
-    document.getElementById("exportJsonBtn").onclick = downloadOutputJson;
-    document.getElementById("downloadLogsBtn").onclick = downloadLogs;
-    document.getElementById("loadLogsBtn").onclick = loadLogs;
-    document.getElementById("clearLogsBtn").onclick = clearLogs;
-    document.getElementById("saveLocalBtn").onclick = saveToLocal;
-    document.getElementById("clearSavedBtn").onclick = clearLocalStorage;
-    pendingList.addEventListener("click", (e) => {
-      if (e.target.classList.contains("remove-pending-btn")) {
-        const i = Number(e.target.getAttribute("data-idx"));
-        if (!isNaN(i)) {
-          showModal("Confirm Remove", "Are you sure you want to remove this pending charity?", true, () => {
-            const removed = pending.splice(i, 1);
-            addLog(`Removed pending charity: ${removed[0]?.name || "unknown"}`);
+        function addPendingFromInputs() {
+            const name = document.getElementById("newName").value.trim();
+            const description = document.getElementById("newDesc").value.trim();
+            const website = document.getElementById("newWebsite").value.trim();
+            const keywordsRaw = document.getElementById("newKeywords").value.trim();
+            if (!name || !website) {
+                showModal("Missing Info", "Name and Website are required.");
+                return;
+            }
+            const keywords = keywordsRaw
+                .split(",")
+                .map((k) => k.trim())
+                .filter((k) => k);
+            const charity = { name, description, website, keywords };
+            pending.push(charity);
+            addLog(`Added pending charity: ${name}`);
             renderPending();
             enableButtons();
             saveIfAuto();
-          });
+            document.getElementById("newName").value = "";
+            document.getElementById("newDesc").value = "";
+            document.getElementById("newWebsite").value = "";
+            document.getElementById("newKeywords").value = "";
         }
-      }
-    });
-    autoSaveEl.addEventListener("change", () => {
-      autoState.textContent = autoSaveEl.checked ? "on" : "off";
-      addLog("Auto-save " + (autoSaveEl.checked ? "enabled" : "disabled"));
-      localStorage.setItem("dtm.autoSave", autoSaveEl.checked);
-      if (autoSaveEl.checked) saveIfAuto();
-    });
-    document.addEventListener("copy", function(event) {
-      if (document.activeElement === out) {
-        event.clipboardData.setData("text/plain", out.innerText);
-        event.preventDefault();
-      }
-    });
-    out.addEventListener("input", () => {
-      enableButtons();
-      saveIfAuto();
-    });
-    loadFromLocal();
-    document.getElementById("tab-output").style.display = "flex";
-  </script>
+        function pasteSamplePending() {
+            document.getElementById("newName").value = "American Red Cross";
+            document.getElementById("newDesc").value =
+                "Provides emergency assistance, disaster relief, and disaster preparedness education.";
+            document.getElementById("newWebsite").value = "https://www.redcross.org";
+            document.getElementById("newKeywords").value = "blood, disaster, relief, emergency, donate";
+        }
+        function importFromUrl() {
+            const url = document.getElementById("dbUrl").value.trim();
+            if (!url) {
+                showModal("Missing URL", "Enter a URL to import.");
+                return;
+            }
+            addLog("Fetching database from URL: " + url);
+            fetch(url)
+                .then((r) => {
+                    if (!r.ok) throw new Error("HTTP " + r.status);
+                    return r.text();
+                })
+                .then((text) => {
+                    document.getElementById("pasteBox").value = text;
+                    loadBaseFromText(text);
+                    addLog("Imported database from URL");
+                })
+                .catch((e) => {
+                    addLog("Failed to fetch: " + e.message);
+                    showModal("Import Failed", "Failed to fetch from URL: " + e.message);
+                });
+        }
+        function loadBaseFromText(raw) {
+            try {
+                let r = raw.trim();
+                if (r.startsWith("const charities =")) {
+                    r = r.slice(r.indexOf("=") + 1).trim();
+                }
+                if (r.endsWith(";")) {
+                    r = r.slice(0, -1);
+                }
+                const parsed = new Function("return (" + r + ")")();
+                if (!Array.isArray(parsed)) {
+                    showModal("Parsing Error", "Loaded data is not a valid array.");
+                    return false;
+                }
+                base = parsed;
+                addLog("Loaded base database with " + base.length + " entries.");
+                renderOutput();
+                enableButtons();
+                saveIfAuto();
+                return true;
+            } catch (e) {
+                showModal("Parsing Error", "Error parsing database: " + e.message);
+                addLog("Error parsing database: " + e.message);
+                return false;
+            }
+        }
+        function clearBase() {
+            showModal(
+                "Confirm Clear",
+                "Clear base database? This cannot be undone.",
+                true,
+                () => {
+                    base = [];
+                    renderOutput();
+                    addLog("Cleared base database.");
+                    enableButtons();
+                    saveIfAuto();
+                }
+            );
+        }
+        function combineBasePending() {
+            base = base.concat(pending);
+            pending = [];
+            renderOutput();
+            renderPending();
+            addLog("Combined pending charities into base database.");
+            enableButtons();
+            saveIfAuto();
+        }
+        function writePendingAsOutput() {
+            renderOutput(pending);
+            addLog("Outputting pending charities only.");
+        }
+        function removeDuplicates() {
+            if (!Array.isArray(base) || base.length === 0) {
+                showModal("No Data", "The database is empty. Please load or import data first.");
+                return;
+            }
+            const seen = new Set();
+            const filtered = [];
+            for (const c of base) {
+                const key = (c.name || '').toLowerCase() + (c.website || '').toLowerCase();
+                if (!seen.has(key)) {
+                    filtered.push(c);
+                    seen.add(key);
+                }
+            }
+            base = filtered;
+            renderOutput();
+            addLog(`Removed duplicate charities based on Name and Website.`);
+            enableButtons();
+            saveIfAuto();
+        }
+        function reformatOutputToBase() {
+            try {
+                let raw = out.innerText.trim();
+                if (raw.startsWith("const charities =")) {
+                    raw = raw.slice(raw.indexOf("=") + 1).trim();
+                }
+                if (raw.endsWith(";")) {
+                    raw = raw.slice(0, -1);
+                }
+                const parsed = new Function("return (" + raw + ")")();
+                if (!Array.isArray(parsed)) {
+                    showModal("Reformat Failed", "Output is not a valid array.");
+                    return;
+                }
+                base = parsed;
+                renderOutput();
+                addLog("Reformatted output to base database.");
+                enableButtons();
+                saveIfAuto();
+            } catch (e) {
+                showModal("Reformat Failed", "Failed to reformat output: " + e.message);
+                addLog("Failed to reformat output: " + e.message);
+            }
+        }
+        function copyOutput() {
+            const textToCopy = out.innerText;
+            if (!textToCopy) {
+                showModal("No Content", "The output area is empty.");
+                return;
+            }
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                addLog("Copied output to clipboard.");
+            }).catch(err => {
+                addLog("Failed to copy text: " + err);
+            });
+        }
+        function downloadText(filename, text) {
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(new Blob([text], { type: "text/javascript" }));
+            a.download = filename;
+            a.style.display = "none";
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+            }, 100);
+        }
+        function downloadOutputJs() {
+            const text = out.innerText;
+            if (!text) {
+                showModal("No Content", "There is no content to download.");
+                return;
+            }
+            downloadText("charities.js", text);
+            addLog("Downloaded output as charities.js");
+        }
+        function downloadOutputJson() {
+            const text = JSON.stringify(base, null, 2);
+            if (base.length === 0) {
+                showModal("No Content", "Base database is empty.");
+                return;
+            }
+            downloadText("charities.json", text);
+            addLog("Downloaded base database as charities.json");
+        }
+        function downloadLogs() {
+            const logText = logs.join("\n");
+            if (!logText) {
+                showModal("No Content", "Logs are empty.");
+                return;
+            }
+            downloadText("dtm-logs.txt", logText);
+        }
+        function loadLogs() {
+            const input = document.createElement("input");
+            input.type = "file";
+            input.accept = ".txt,.log";
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    logs = (evt.target.result || "").split("\n").slice(-500);
+                    renderLogs();
+                    addLog("Loaded logs from file.");
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+        function clearLogs() {
+            showModal(
+                "Confirm Clear",
+                "Clear all logs? This cannot be undone.",
+                true,
+                () => {
+                    logs = [];
+                    renderLogs();
+                    addLog("Logs cleared.");
+                }
+            );
+        }
+        function saveToLocal() {
+            try {
+                localStorage.setItem("dtm.base", JSON.stringify(base));
+                localStorage.setItem("dtm.pending", JSON.stringify(pending));
+                addLog("Manual save successful.");
+                showModal("Save Successful", "Saved to local storage.");
+            } catch {
+                addLog("Manual save failed.");
+                showModal("Save Failed", "Failed to save to local storage.");
+            }
+        }
+        function clearLocalStorage() {
+            showModal(
+                "Confirm Clear",
+                "Clear all saved data? This cannot be undone.",
+                true,
+                () => {
+                    localStorage.removeItem("dtm.base");
+                    localStorage.removeItem("dtm.pending");
+                    base = [];
+                    pending = [];
+                    renderOutput();
+                    renderPending();
+                    enableButtons();
+                    addLog("Cleared saved data from localStorage.");
+                    showModal("Data Cleared", "Saved data cleared.");
+                }
+            );
+        }
+        function loadFromLocal() {
+            try {
+                const b = localStorage.getItem("dtm.base");
+                const p = localStorage.getItem("dtm.pending");
+                if (b) base = JSON.parse(b);
+                if (p) pending = JSON.parse(p);
+                addLog("Loaded data from localStorage.");
+            } catch {
+                addLog("Failed to load from localStorage.");
+            }
+            autoSaveEl.checked = localStorage.getItem("dtm.autoSave") === "true";
+            autoState.textContent = autoSaveEl.checked ? "on" : "off";
+            renderOutput();
+            renderPending();
+            enableButtons();
+        }
+        document.querySelectorAll(".tab-btn").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".tab-btn").forEach((b) => {
+                    b.classList.remove("active");
+                    b.setAttribute("aria-selected", "false");
+                    b.setAttribute("tabindex", "-1");
+                });
+                btn.classList.add("active");
+                btn.setAttribute("aria-selected", "true");
+                btn.setAttribute("tabindex", "0");
+                document.querySelectorAll("[role=tabpanel]").forEach((panel) => {
+                    panel.style.display = "none";
+                });
+                const id = btn.getAttribute("data-tab");
+                document.getElementById(id).style.display = "flex";
+                if (id === "tab-output") {
+                    out.focus();
+                }
+            });
+        });
+        document.getElementById("addPendingBtn").onclick = addPendingFromInputs;
+        document.getElementById("clearPendingBtn").onclick = clearPending;
+        document.getElementById("pasteSampleBtn").onclick = pasteSamplePending;
+        document.getElementById("importBtn").onclick = importFromUrl;
+        document.getElementById("loadBtn").onclick = () => {
+            loadBaseFromText(document.getElementById("pasteBox").value);
+        };
+        document.getElementById("clearBaseBtn").onclick = clearBase;
+        document.getElementById("combineBtn").onclick = combineBasePending;
+        document.getElementById("writePendingBtn").onclick = writePendingAsOutput;
+        document.getElementById("reformatBtn").onclick = reformatOutputToBase;
+        document.getElementById("clearOutputBtn").onclick = clearOutput;
+        document.getElementById("removeDupBtn").onclick = removeDuplicates;
+        document.getElementById("copyBtn").onclick = copyOutput;
+        document.getElementById("downloadJsBtn").onclick = downloadOutputJs;
+        document.getElementById("exportJsonBtn").onclick = downloadOutputJson;
+        document.getElementById("downloadLogsBtn").onclick = downloadLogs;
+        document.getElementById("loadLogsBtn").onclick = loadLogs;
+        document.getElementById("clearLogsBtn").onclick = clearLogs;
+        document.getElementById("saveLocalBtn").onclick = saveToLocal;
+        document.getElementById("clearSavedBtn").onclick = clearLocalStorage;
+        
+        pendingList.addEventListener("click", (e) => {
+            if (e.target.classList.contains("remove-pending-btn")) {
+                const i = Number(e.target.getAttribute("data-idx"));
+                if (!isNaN(i)) {
+                    showModal("Confirm Remove", "Are you sure you want to remove this pending charity?", true, () => {
+                        const removed = pending.splice(i, 1);
+                        addLog(`Removed pending charity: ${removed[0]?.name || "unknown"}`);
+                        renderPending();
+                        enableButtons();
+                        saveIfAuto();
+                    });
+                }
+            }
+        });
+        autoSaveEl.addEventListener("change", () => {
+            autoState.textContent = autoSaveEl.checked ? "on" : "off";
+            addLog("Auto-save " + (autoSaveEl.checked ? "enabled" : "disabled"));
+            localStorage.setItem("dtm.autoSave", autoSaveEl.checked);
+            if (autoSaveEl.checked) saveIfAuto();
+        });
+        out.addEventListener("input", () => {
+            enableButtons();
+            saveIfAuto();
+        });
+        loadFromLocal();
+        document.getElementById("tab-output").style.display = "flex";
+    </script>
 </body>
 </html>
