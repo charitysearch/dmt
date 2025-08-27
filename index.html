@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>DTM</title>
+    <title>DMT</title>
     <style>
         :root {
             --max: 1100px;
@@ -298,12 +298,12 @@
         <div id="modalContainer" style="display: none;"></div>
         <header>
             <div>
-                <h1>DTM</h1>
+                <h1>DMT</h1>
                 <div class="sub">Developer charity database manager</div>
             </div>
             <div class="tiny">Auto-save: <span id="autoState">off</span></div>
         </header>
-        <div class="tabs" role="tablist" aria-label="DTM Tabs">
+        <div class="tabs" role="tablist" aria-label="DMT Tabs">
             <button class="tab-btn active" data-tab="tab-output" role="tab" aria-selected="true" tabindex="0">Output</button>
             <button class="tab-btn" data-tab="tab-db" role="tab" aria-selected="false" tabindex="-1">Database</button>
             <button class="tab-btn" data-tab="tab-tools" role="tab" aria-selected="false" tabindex="-1">Tools</button>
@@ -334,7 +334,7 @@
             </div>
             <div class="footer">
                 <div class="tiny">Output tab is primary. Use Database or Tools tabs to modify data.</div>
-                <div class="tiny">DTM</div>
+                <div class="tiny">DMT</div>
             </div>
         </div>
         <div id="tab-db" class="container" role="tabpanel" aria-labelledby="tab-db" tabindex="0" style="display:none; margin-top:12px;">
@@ -465,8 +465,8 @@
         function saveIfAuto() {
             if (autoSaveEl.checked) {
                 try {
-                    localStorage.setItem("dtm.base", JSON.stringify(base));
-                    localStorage.setItem("dtm.pending", JSON.stringify(pending));
+                    localStorage.setItem("dmt.base", JSON.stringify(base));
+                    localStorage.setItem("dmt.pending", JSON.stringify(pending));
                     addLog("Auto-saved data");
                 } catch (e) {
                     addLog("Auto-save failed");
@@ -759,7 +759,7 @@
                 showModal("No Content", "Logs are empty.");
                 return;
             }
-            downloadText("dtm-logs.txt", logText);
+            downloadText("dmt-logs.txt", logText);
         }
         function loadLogs() {
             const input = document.createElement("input");
@@ -792,8 +792,8 @@
         }
         function saveToLocal() {
             try {
-                localStorage.setItem("dtm.base", JSON.stringify(base));
-                localStorage.setItem("dtm.pending", JSON.stringify(pending));
+                localStorage.setItem("dmt.base", JSON.stringify(base));
+                localStorage.setItem("dmt.pending", JSON.stringify(pending));
                 addLog("Manual save successful.");
                 showModal("Save Successful", "Saved to local storage.");
             } catch {
@@ -807,8 +807,8 @@
                 "Clear all saved data? This cannot be undone.",
                 true,
                 () => {
-                    localStorage.removeItem("dtm.base");
-                    localStorage.removeItem("dtm.pending");
+                    localStorage.removeItem("dmt.base");
+                    localStorage.removeItem("dmt.pending");
                     base = [];
                     pending = [];
                     renderOutput();
@@ -821,15 +821,15 @@
         }
         function loadFromLocal() {
             try {
-                const b = localStorage.getItem("dtm.base");
-                const p = localStorage.getItem("dtm.pending");
+                const b = localStorage.getItem("dmt.base");
+                const p = localStorage.getItem("dmt.pending");
                 if (b) base = JSON.parse(b);
                 if (p) pending = JSON.parse(p);
                 addLog("Loaded data from localStorage.");
             } catch {
                 addLog("Failed to load from localStorage.");
             }
-            autoSaveEl.checked = localStorage.getItem("dtm.autoSave") === "true";
+            autoSaveEl.checked = localStorage.getItem("dmt.autoSave") === "true";
             autoState.textContent = autoSaveEl.checked ? "on" : "off";
             renderOutput();
             renderPending();
@@ -894,7 +894,7 @@
         autoSaveEl.addEventListener("change", () => {
             autoState.textContent = autoSaveEl.checked ? "on" : "off";
             addLog("Auto-save " + (autoSaveEl.checked ? "enabled" : "disabled"));
-            localStorage.setItem("dtm.autoSave", autoSaveEl.checked);
+            localStorage.setItem("dmt.autoSave", autoSaveEl.checked);
             if (autoSaveEl.checked) saveIfAuto();
         });
         out.addEventListener("input", () => {
